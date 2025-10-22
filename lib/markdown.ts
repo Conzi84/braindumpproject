@@ -6,56 +6,130 @@ import html from 'remark-html';
 
 const contentDirectory = path.join(process.cwd(), 'content');
 
-export async function getMarkdownContent(folder: 'blog' | 'garden', slug: string) {
-  const fullPath = path.join(contentDirectory, folder, `${slug}.md`);
-  const fileContents = fs.readFileSync(fullPath, 'utf8');
-  const { data, content } = matter(fileContents);
-  
-  const processedContent = await remark().use(html).process(content);
-  const contentHtml = processedContent.toString();
-
-  return {
-    slug,
-    contentHtml,
-    ...data,
-  };
+export interface Post {
+  slug: string;
+  title: string;
+  date?: string;
+  excerpt?: string;
+  category?: string;
+  content: string;
 }
 
-export function getAllMarkdownSlugs(folder: 'blog' | 'garden') {
-  const folderPath = path.join(contentDirectory, folder);
+/**
+ * Get all posts from a specific directory (blog or garden)
+ */
+export async function getAllPosts(type: 'blog' | 'garden'): Promise<Post[]> {
+  const postsDirectory = path.join(contentDirectory, type);
   
-  if (!fs.existsSync(folderPath)) {
+  // Check if directory exists
+  if (!fs.existsSync(postsDirectory)) {
+    console.warn(`Directory not found: ${postsDirectory}`);
     return [];
   }
   
-  const fileNames = fs.readdirSync(folderPath);
+  let fileNames: string[];
   
-  return fileNames
-    .filter(fileName => fileName.endsWith('.md'))
-    .map(fileName => fileName.replace(/\.md$/, ''));
-}
-
-export async function getAllMarkdownPosts(folder: 'blog' | 'garden') {
-  const slugs = getAllMarkdownSlugs(folder);
+  try {
+    fileNames = fs.readdirSync(postsDirectory);
+  } catch (error) {
+    console.error(`Error reading directory ${postsDirectory}:`, error);
+    return [];
+  }
+  
+  // Filter for .md files only
+  const mdFiles = fileNames.filter(fileName => fileName.endsWith('.md'));
+  
+  if (mdFiles.length === 0) {
+    console.warn(`No .md files found in ${postsDirectory}`);
+    return [];
+  }
+  
   const posts = await Promise.all(
-    slugs.map(async (slug) => {
-      const content = await getMarkdownContent(folder, slug);
-      return content;
+    mdFiles.map(async (fileName) => {
+      const slug = fileName.replace(/\.md$/, '');
+      const post = await getPostBySlug(slug, type);
+      return post;
     })
   );
   
-  return posts.sort((a: any, b: any) => {
-    if (a.date < b.date) return 1;
-    return -1;
+  // Filter out any null posts (failed to load)
+  const validPosts = posts.filter((post): post is Post => post !== null);
+  
+  // Sort by date (newest first)
+  return validPosts.sort((a, b) => {
+    if (!a.date || !b.date) return 0;
+    return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
 }
-```
 
-**content/blog/.gitkeep:**
-```
-# Place your blog markdown files here
-```
+/**
+ * Get a single post by slug
+ */
+export async function getPostBySlug(
+  slug: string, 
+  type: 'blog' | 'garden'
+): Promise<Post | null> {
+  const postsDirectory = path.join(contentDirectory, type);
+  const fullPath = path.join(postsDirectory, `${slug}.md`);
+  
+  // Check if file exists
+  if (!fs.existsSync(fullPath)) {
+    console.warn(`File not found: ${fullPath}`);
+    return null;
+  }
+  
+  let fileContents: string;
+  
+  try {
+    fileContents = fs.readFileSync(fullPath, 'utf8');
+  } catch (error) {
+    console.error(`Error reading file ${fullPath}:`, error);
+    return null;
+  }
+  
+  let matterResult;
+  
+  try {
+    matterResult = matter(fileContents);
+  } catch (error) {
+    console.error(`Error parsing frontmatter in ${fullPath}:`, error);
+    return null;
+  }
+  
+  // Process markdown content to HTML
+  let contentHtml: string;
+  
+  try {
+    const processedContent = await remark()
+      .use(html, { sanitize: false })
+      .process(matterResult.content);
+    contentHtml = processedContent.toString();
+  } catch (error) {
+    console.error(`Error processing markdown in ${fullPath}:`, error);
+    contentHtml = `<p>Error rendering content</p>`;
+  }
+  
+  // Return post with fallbacks for missing data
+  return {
+    slug,
+    title: matterResult.data.title || 'Untitled',
+    date: matterResult.data.date || null,
+    excerpt: matterResult.data.excerpt || null,
+    category: matterResult.data.category || null,
+    content: contentHtml,
+  };
+}
 
-**content/garden/.gitkeep:**
-```
-# Place your digital garden markdown files here
+/**
+ * Get all unique categories from garden notes
+ */
+export async function getCategories(): Promise<string[]> {
+  const notes = await getAllPosts('garden');
+  
+  const categories = notes
+    .map(note => note.category)
+    .filter((category): category is string => category !== null && category !== undefined);
+  
+  // Return unique categories
+  return Array.from(new Set(categories));
+}
