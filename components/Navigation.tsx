@@ -1,30 +1,47 @@
-import Link from "next/link";
+// components/Navigation.tsx
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function Navigation() {
+  const pathname = usePathname();
+
+  const links = [
+    { href: '/', label: 'Home' },
+    { href: '/blog', label: 'Blog' },
+    { href: '/garden', label: 'Garden' },
+    { href: '/resources', label: 'Resources' },
+    { href: '/about', label: 'About' },
+    { href: '/contact', label: 'Contact' },
+  ];
+
   return (
-    <nav className="border-b-4 border-stark-black bg-concrete-white">
+    <nav className="border-b border-gray-300 bg-concrete-white">
       <div className="max-w-6xl mx-auto px-6 py-6">
         <div className="flex items-center justify-between">
-          <Link href="/" className="font-montserrat font-bold text-2xl">
-            BRAIN DUMP
+          {/* Logo */}
+          <Link href="/" className="text-2xl font-bold font-heading text-stark-black">
+            Brain Dump
           </Link>
-          <div className="flex gap-8 font-open-sans font-semibold text-sm">
-            <Link href="/blog" className="hover:text-muted-rust transition-colors">
-              Blog
-            </Link>
-            <Link href="/garden" className="hover:text-muted-rust transition-colors">
-              Digital Garden
-            </Link>
-            <Link href="/resources" className="hover:text-muted-rust transition-colors">
-              Resources
-            </Link>
-            <Link href="/about" className="hover:text-muted-rust transition-colors">
-              About
-            </Link>
-            <Link href="/contact" className="hover:text-muted-rust transition-colors">
-              Contact
-            </Link>
-          </div>
+
+          {/* Navigation Links */}
+          <ul className="flex gap-8">
+            {links.map((link) => (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  className={`font-heading font-semibold transition-colors ${
+                    pathname === link.href
+                      ? 'text-muted-rust'
+                      : 'text-stark-black hover:text-muted-rust'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </nav>
