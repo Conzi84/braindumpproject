@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  h1 {
+    @apply font-montserrat font-bold text-5xl leading-tight;
+  }
+  
+  h2 {
+    @apply font-montserrat font-semibold text-4xl leading-tight;
+  }
+  
+  h3 {
+    @apply font-montserrat font-semibold text-2xl leading-tight;
+  }
+  
+  p {
+    @apply font-open-sans text-base leading-relaxed;
+  }
+  
+  body {
+    @apply antialiased;
+  }
+}
