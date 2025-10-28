@@ -59,8 +59,9 @@ export default async function GardenNote({ params }: { params: { slug: string } 
       </header>
       
       {/* Content */}
-      <div 
-        className="prose prose-lg max-w-none
+      <div
+        className="prose max-w-none
+          md:prose-lg lg:prose-xl xl:prose-2xl
           prose-headings:font-display prose-headings:font-semibold prose-headings:text-black
           prose-p:font-body prose-p:text-black prose-p:leading-relaxed
           prose-a:text-mutedRust prose-a:no-underline hover:prose-a:underline

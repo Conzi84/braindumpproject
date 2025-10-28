@@ -10,7 +10,7 @@ export default async function GardenPage() {
       <h1 className="text-5xl font-bold font-heading text-stark-black mb-4">
         Digital Garden
       </h1>
-      <p className="text-xl text-brain-dump-gray font-light mb-16">
+      <p className="text-xl md:text-2xl lg:text-[28px] text-brain-dump-gray font-light mb-16 leading-relaxed">
         Growing ideas, notes, and evergreen content.
       </p>
 
@@ -27,13 +27,13 @@ export default async function GardenPage() {
               href={`/garden/${note.slug}`}
               className="group border-2 border-gray-300 p-6 hover:border-muted-rust transition-colors"
             >
-              <h2 className="text-2xl font-bold font-heading text-stark-black mb-3 group-hover:text-muted-rust transition-colors">
+              <h2 className="text-2xl md:text-3xl lg:text-[34px] font-bold font-heading text-stark-black mb-3 group-hover:text-muted-rust transition-colors leading-snug">
                 {note.title}
               </h2>
-              <p className="text-brain-dump-gray font-light text-sm mb-4 line-clamp-3">
+              <p className="text-brain-dump-gray font-light text-sm md:text-base lg:text-lg mb-4 line-clamp-3 leading-relaxed">
                 {note.excerpt}
               </p>
-              <time className="text-xs text-brain-dump-gray font-light">
+              <time className="text-xs md:text-sm text-brain-dump-gray font-light">
                 {note.date}
               </time>
             </Link>
